@@ -1,13 +1,13 @@
 - name: Copy all nodes cetificates to every node
   copy:
-    src: /home/dba/ssl/certs/{{ item }}.crt
+    src: ~/ssl/certs/{{ item }}.crt
     dest: /etc/security/serverKeys/certs
   with_items:
     - "{{ ansible_play_batch|lower }}"
 
 - name: Copy all nodes java keystores to every node
   copy:
-    src: /home/dba/ssl/jks/{{ item }}-keystore.jks
+    src: ~/ssl/jks/{{ item }}-keystore.jks
     dest: /etc/security/serverKeys/jks/
   with_items:
     - "{{ ansible_play_batch|lower }}"
