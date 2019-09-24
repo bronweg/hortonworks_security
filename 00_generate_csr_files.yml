@@ -7,36 +7,34 @@
     - "{{ local_jks_folder }}"
     - "{{ local_csr_folder }}"
     - "{{ local_certs_folder }}"
+  delegate_to: 127.0.0.1
+  run_once: true
 
-- name: Create csr file and send it to ansible server
-  hosts: WHOLE-CLUSTER-ANSIBLE-GROUP
-  become: yes
-  tasks:
-  - name: Create a new folder to save the csr & keystore files
-    file:
-      path: "{{ item }}"
-      state: directory
-      mode: 0755
-    with_items:
-      - "{{ jks_folder }}"
-      - "{{ csr_folder }}"
-      - "{{ certs_folder }}"
+- name: Create a new folder to save the csr & keystore files
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ jks_folder }}"
+    - "{{ csr_folder }}"
+    - "{{ certs_folder }}"
 
-  - name: Create Keystore (contain the private key with alias)
-    shell: keytool -genkeypair -keystore {{ jks_folder }}/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -keypass {{ security_password }} -dname "CN=$(hostname -f)" -keyalg RSA -validity 3650 -keysize 2048
+- name: Create Keystore (contain the private key with alias)
+  shell: keytool -genkeypair -keystore {{ jks_folder }}/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -keypass {{ security_password }} -dname "CN=$(hostname -f)" -keyalg RSA -validity 3650 -keysize 2048
 
-  - name: Generate the CSR files (The CSR contains the matching public key and other information like your organization's name)
-    shell: keytool -certreq -keystore {{ jks_folder }}/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -file {{ csr_folder }}/$(hostname -f).csr -ext "san=dns:$(hostname -f),dns:$(hostname)"
+- name: Generate the CSR files (The CSR contains the matching public key and other information like your organization's name)
+  shell: keytool -certreq -keystore {{ jks_folder }}/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -file {{ csr_folder }}/$(hostname -f).csr -ext "san=dns:$(hostname -f),dns:$(hostname)"
 
-  - name: set variable
-    shell: echo $(hostname -f)
-    register: hostname_fqdn
+- name: set variable
+  shell: echo $(hostname -f)
+  register: hostname_fqdn
 
-  - name: Get csr files to ansible server
-    fetch:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      flat: yes
-    with_items:
-      - { src: '{{ csr_folder }}/{{ hostname_fqdn.stdout }}.csr', dest: '{{ local_csr_folder }}' }
-      - { src: '{{ jks_folder }}/{{ hostname_fqdn.stdout }}-keystore.jks', dest: '{{ local_jks_folder }}' }
+- name: Get csr files to ansible server
+  fetch:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    flat: no
+  with_items:
+    - { src: '{{ csr_folder }}/{{ hostname_fqdn.stdout }}.csr', dest: '{{ local_csr_folder }}' }
+    - { src: '{{ jks_folder }}/{{ hostname_fqdn.stdout }}-keystore.jks', dest: '{{ local_jks_folder }}' }
