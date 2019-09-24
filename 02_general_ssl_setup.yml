@@ -1,25 +1,25 @@
 - name: Copy all nodes cetificates to every node
   copy:
-    src: ~/ssl/certs/{{ item }}.crt
-    dest: /etc/security/serverKeys/certs
+    src: {{ local_certs_folder }}/{{ item }}.crt
+    dest: "{{ certs_folder }}"
   with_items:
     - "{{ ansible_play_batch|lower }}"
 
 - name: Copy all nodes java keystores to every node
   copy:
-    src: ~/ssl/jks/{{ item }}-keystore.jks
-    dest: /etc/security/serverKeys/jks/
+    src: {{ local_jks_folder }}/{{ item }}-keystore.jks
+    dest: "{{ jks_folder }}"
   with_items:
     - "{{ ansible_play_batch|lower }}"
 
 - name: Create copy of keystore file with generic name
   copy:
     remote_src: yes
-    src: /etc/security/serverKeys/jks/{{ inventory_hostname|lower }}-keystore.jks
-    dest: /etc/security/serverKeys/jks/keystore.jks
+    src: {{ jks_folder }}/{{ inventory_hostname|lower }}-keystore.jks
+    dest: {{ main_keystore }}
 
 - name: Import ROOT and INT CAs to keystore
-  shell: keytool -import -alias {{ item.alias }} -trustcacerts -file /etc/security/serverKeys/certs/{{ item.cert }} -keystore /etc/security/serverKeys/jks/{{ inventory_hostname|lower }}-keystore.jks -storepass {{ security_password }} -noprompt
+  shell: keytool -import -alias {{ item.alias }} -trustcacerts -file {{ certs_folder }}/{{ item.cert }} -keystore {{ jks_folder }}/{{ inventory_hostname|lower }}-keystore.jks -storepass {{ security_password }} -noprompt
   with_items:
     - { cert: 'RootCA.cer', alias: 'rootca' }
     - { cert: 'SubCA.cer', alias: 'intca' }
@@ -28,8 +28,8 @@
 - name: Import certs into node keystore
   java_cert:
     cert_alias: "{{ item.alias | default( item ) }}"
-    cert_path: /etc/security/serverKeys/certs/{{ item.cert | default( item ~ '.crt' ) }}
-    keystore_path: /etc/security/serverKeys/jks/keystore.jks
+    cert_path: {{ certs_folder }}/{{ item.cert | default( item ~ '.crt' ) }}
+    keystore_path: {{ main_keystore }}
     keystore_pass: "{{ security_password }}"
     state: present
   with_items:
@@ -38,8 +38,8 @@
 - name: Import certs into node truststore
   java_cert:
     cert_alias: "{{ item.alias | default( item ) }}"
-    cert_path: /etc/security/serverKeys/certs/{{ item.cert | default( item ~ '.crt' ) }}
-    keystore_path: /etc/security/serverKeys/jks/truststore.jks
+    cert_path: {{ certs_folder }}/{{ item.cert | default( item ~ '.crt' ) }}
+    keystore_path: {{ main_truststore }}
     keystore_pass: "{{ security_password }}"
     keystore_create: yes
     state: present
@@ -47,7 +47,7 @@
     - "{{ ansible_play_batch|lower }}"
 
 - name: Import ROOT and INT CAs to truststore
-  shell: keytool -import -alias {{ item.alias }} -trustcacerts -file /etc/security/serverKeys/certs/{{ item.cert }} -keystore /etc/security/serverKeys/jks/truststore.jks -storepass {{ security_password }} -noprompt
+  shell: keytool -import -alias {{ item.alias }} -trustcacerts -file {{ certs_folder }}/{{ item.cert }} -keystore {{ main_truststore }} -storepass {{ security_password }} -noprompt
   with_items:
     - { cert: 'RootCA.cer', alias: 'rootca' }
     - { cert: 'SubCA.cer', alias: 'intca' }

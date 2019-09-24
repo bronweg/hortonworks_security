@@ -1,8 +1,8 @@
 - block:
-  - shell: keytool -export -alias {{ inventory_hostname|lower }} -file /tmp/grafana.cer -keystore /etc/security/serverKeys/jks/keystore.jks -storepass {{ security_password }}
-  - shell: openssl x509 -in /tmp/grafana.cer -inform DER -outform PEM -out /etc/security/serverKeys/certs/grafana.pem
-  - shell: keytool -importkeystore -srckeystore /etc/security/serverKeys/jks/keystore.jks -deststoretype PKCS12 -destkeystore /tmp/keystore.p12 -storepass {{ security_password }} -srcstorepass {{ security_password }}
-  - shell: openssl pkcs12 -in /tmp/keystore.p12 -clcerts -nodes -nocerts -passin pass:{{ security_password }} | openssl rsa > /etc/security/serverKeys/certs/grafana.key
+  - shell: keytool -export -alias {{ inventory_hostname|lower }} -file /tmp/grafana.cer -keystore {{ main_keystore }} -storepass {{ security_password }}
+  - shell: openssl x509 -in /tmp/grafana.cer -inform DER -outform PEM -out {{ certs_folder }}/grafana.pem
+  - shell: keytool -importkeystore -srckeystore {{ main_keystore }} -deststoretype PKCS12 -destkeystore /tmp/keystore.p12 -storepass {{ security_password }} -srcstorepass {{ security_password }}
+  - shell: openssl pkcs12 -in /tmp/keystore.p12 -clcerts -nodes -nocerts -passin pass:{{ security_password }} | openssl rsa > {{ certs_folder }}/grafana.key
   when: "'AMBARI_SERVER' in group_names"
 
 - set_fact:
@@ -13,8 +13,8 @@
   shell: "/var/lib/ambari-server/resources/scripts/configs.py {{ general_configpy_args }} --config-type=ams-grafana-ini --key={{ item.key }} --value={{ item.value }} --version-note={{ item.key }}"
   with_items:
     - { key: "protocol", value: "https" } 
-    - { key: "cert_file", value: "/etc/security/serverKeys/certs/grafana.pem" } 
-    - { key: "cert_key", value: "/etc/security/serverKeys/certs/grafana.key" } 
+    - { key: "cert_file", value: "{{ certs_folder }}/grafana.pem" } 
+    - { key: "cert_key", value: "{{ certs_folder }}/grafana.key" } 
   when: "'AMBARI_SERVER' in group_names"
 
 - name: Restart all services with stale configuration

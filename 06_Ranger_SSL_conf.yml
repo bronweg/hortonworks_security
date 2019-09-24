@@ -13,15 +13,15 @@
   with_items:
     - { key: "ranger.service.http.enabled", value: "false" } 
     - { key: "ranger.truststore.alias", value: "rootca" } 
-    - { key: "ranger.truststore.file", value: "/etc/security/serverKeys/jks/truststore.jks" } 
+    - { key: "ranger.truststore.file", value: "{{ main_truststore }}" } 
     - { key: "ranger.truststore.password", value: "{{ security_password }}" } 
-    - { key: "ranger.https.attrib.keystore.file", value: "/etc/security/serverKeys/jks/keystore.jks" } 
+    - { key: "ranger.https.attrib.keystore.file", value: "{{ main_keystore }}" } 
     - { key: "ranger.service.https.attrib.keystore.keyalias", value: "{{ inventory_hostname|lower }}" } 
     - { key: "ranger.service.https.attrib.keystore.pass", value: "{{ security_password }}" } 
     - { key: "ranger.service.https.attrib.clientAuth", value: "false" } 
     - { key: "ranger.service.https.attrib.ssl.enabled", value: "true" } 
     - { key: "ranger.service.https.port", value: "{{ ldap_port }}" } 
-    - { key: "ranger.service.https.attrib.keystore.file", value: "/etc/security/serverKeys/jks/keystore.jks" } 
+    - { key: "ranger.service.https.attrib.keystore.file", value: "{{ main_keystore }}" } 
     - { key: "ranger.service.https.attrib.client.auth", value: "false" } 
     - { key: "ranger.authentication.method", value: "ACTIVE_DIRECTORY" } 
     - { key: "ranger.ldap.ad.domain", value: "{{ ldap_domain }}" } 
@@ -35,7 +35,7 @@
 - name: Configure SSL for ranger-ugsync-site
   shell: "/var/lib/ambari-server/resources/scripts/configs.py {{ general_configpy_args }} --config-type=ranger-ugsync-site --key={{ item.key }} --value={{ item.value }} --version-note={{ item.key }}"
   with_items:
-    - { key: "ranger.usersync.truststore.file", value: "/etc/security/serverKeys/jks/truststore.jks" } 
+    - { key: "ranger.usersync.truststore.file", value: "{{ main_truststore }}" } 
     - { key: "ranger.usersync.truststore.password", value: "{{ security_password }}" } 
     - { key: "ranger.usersync.source.impl.class", value: "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder" } 
     - { key: "ranger.usersync.ldap.url", value: "{{ ldap_url }}" } 

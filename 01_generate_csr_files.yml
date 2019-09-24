@@ -4,9 +4,9 @@
     state: directory
     mode: 0755
   with_items:
-    - ~/ssl/csr
-    - ~/ssl/certs
-    - ~/ssl/jks
+    - "{{ local_jks_folder }}"
+    - "{{ local_csr_folder }}"
+    - "{{ local_certs_folder }}"
 
 - name: Create csr file and send it to ansible server
   hosts: WHOLE-CLUSTER-ANSIBLE-GROUP
@@ -18,15 +18,15 @@
       state: directory
       mode: 0755
     with_items:
-      - /etc/security/serverKeys/jks
-      - /etc/security/serverKeys/csr
-      - /etc/security/serverKeys/certs
+      - "{{ jks_folder }}"
+      - "{{ csr_folder }}"
+      - "{{ certs_folder }}"
 
   - name: Create Keystore (contain the private key with alias)
-    shell: keytool -genkeypair -keystore /etc/security/serverKeys/jks/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -keypass {{ security_password }} -dname "CN=$(hostname -f)" -keyalg RSA -validity 3650 -keysize 2048
+    shell: keytool -genkeypair -keystore {{ jks_folder }}/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -keypass {{ security_password }} -dname "CN=$(hostname -f)" -keyalg RSA -validity 3650 -keysize 2048
 
   - name: Generate the CSR files (The CSR contains the matching public key and other information like your organization's name)
-    shell: keytool -certreq -keystore /etc/security/serverKeys/jks/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -file /etc/security/serverKeys/csr/$(hostname -f).csr -ext "san=dns:$(hostname -f),dns:$(hostname)"
+    shell: keytool -certreq -keystore {{ jks_folder }}/$(hostname -f)-keystore.jks -storepass {{ security_password }} -alias $(hostname -f) -file {{ csr_folder }}/$(hostname -f).csr -ext "san=dns:$(hostname -f),dns:$(hostname)"
 
   - name: set variable
     shell: echo $(hostname -f)
@@ -38,5 +38,5 @@
       dest: "{{ item.dest }}"
       flat: yes
     with_items:
-      - { src: '/etc/security/serverKeys/csr/{{ hostname_fqdn.stdout }}.csr', dest: '~/ssl/csr/' }
-      - { src: '/etc/security/serverKeys/jks/{{ hostname_fqdn.stdout }}-keystore.jks', dest: '~/ssl/jks/' }
+      - { src: '{{ csr_folder }}/{{ hostname_fqdn.stdout }}.csr', dest: '{{ local_csr_folder }}' }
+      - { src: '{{ jks_folder }}/{{ hostname_fqdn.stdout }}-keystore.jks', dest: '{{ local_jks_folder }}' }

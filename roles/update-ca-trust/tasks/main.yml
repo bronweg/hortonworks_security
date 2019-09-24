@@ -1,6 +1,6 @@
 - name: Create certificates directory
   file:
-    path: /etc/security/serverKeys/certs
+    path: "{{ certs_folder }}"
     state: directory
     mode: 0755
     owner: root
@@ -12,7 +12,7 @@
 - name: Copy certificate files to instances
   copy:
     src: "{{ item }}"
-    dest: /etc/security/serverKeys/certs/
+    dest: "{{ certs_folder }}"
   register: "crts"
   with_fileglob:
     - "*.cer"

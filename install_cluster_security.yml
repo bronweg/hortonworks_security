@@ -34,6 +34,19 @@
     ldap_groups_ou: 'OU=org_unit,OU=Service\ Account\ Users,DC=example,DC=org,DC=il'
     ldap_user_DNs: '{{ ldap_ou_for_hortonworks }}\;{{ ldap_users_ou }}'
     ldap_group_DNs: '{{ ldap_ou_for_hortonworks }}\;{{ ldap_groups_ou }}'
+    serverKeys_folder: "/etc/security/serverKeys"
+    jks_folder: "{{ serverKeys_folder }}/jks"
+    csr_folder: "{{ serverKeys_folder }}/csr"
+    certs_folder: "{{ serverKeys_folder }}/certs"
+    main_keystore: "{{ jks_folder }}/keystore.jks"
+    main_truststore: "{{ jks_folder }}/truststore.jks"
+    nifi_keystore: "{{ jks_folder }}/nifi_keystore.jks"
+    nifi_truststore: "{{ jks_folder }}/nifi_truststore.jks"
+    kafka_keystore: "{{ jks_folder }}/kafka_keystore.jks"
+    kafka_truststore: "{{ jks_folder }}/kafka_truststore.jks"
+    local_jks_folder: "ssl/jks"
+    local_csr_folder: "ssl/csr"
+    local_certs_folder: "ssl/certs"
   tasks:
 #  - name: Install kerberos
 #    include: 00_kerberos.yml

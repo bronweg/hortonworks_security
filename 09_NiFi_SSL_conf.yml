@@ -87,12 +87,12 @@
   block:
     - copy:
         remote_src: yes
-        src: /etc/security/serverKeys/jks/{{ item }}.jks
-        dest: /etc/security/serverKeys/jks/nifi_{{ item }}.jks
+        src: {{ jks_folder }}/{{ item }}.jks
+        dest: {{ jks_folder }}/nifi_{{ item }}.jks
       with_items:
         - keystore
         - truststore
-    - shell: "keytool -changealias -keystore /etc/security/serverKeys/jks/nifi_keystore.jks -alias {{ inventory_hostname|lower }} -destalias nifi-key -storepass {{ security_password }}"
+    - shell: "keytool -changealias -keystore {{ nifi_keystore }} -alias {{ inventory_hostname|lower }} -destalias nifi-key -storepass {{ security_password }}"
 
 - name: "Configure SSL for NiFi"
   block:
@@ -103,10 +103,10 @@
       with_items:
         - { key: "nifi.security.keyPasswd", value: "{{ security_password }}" }
         - { key: "nifi.node.ssl.isenabled", value: "true" }
-        - { key: "nifi.security.keystore", value: "/etc/security/serverKeys/jks/nifi_keystore.jks" }
+        - { key: "nifi.security.keystore", value: "{{ nifi_keystore }}" }
         - { key: "nifi.security.keystoreType", value: "jks" }
         - { key: "nifi.security.keystorePasswd", value: "{{ security_password }}" }
-        - { key: "nifi.security.truststore", value: "/etc/security/serverKeys/jks/nifi_truststore.jks" }
+        - { key: "nifi.security.truststore", value: "{{ nifi_truststore }}" }
         - { key: "nifi.security.truststoreType", value: "jks" }
         - { key: "nifi.security.truststorePasswd", value: "{{ security_password }}" }
         #- { key: "nifi.initial.admin.identity", value: "{{ ldap_ou_admin_user_dn }}" }
@@ -122,9 +122,9 @@
 
     - shell: "/var/lib/ambari-server/resources/scripts/configs.py {{ general_configpy_args }} --config-type=ranger-nifi-policymgr-ssl --key={{ item.key }} --value={{ item.value }} --version-note={{ item.key }}"
       with_items:
-        - { key: "xasecure.policymgr.clientssl.keystore", value: "/etc/security/serverKeys/jks/nifi_keystore.jks" }
+        - { key: "xasecure.policymgr.clientssl.keystore", value: "{{ nifi_keystore }}" }
         - { key: "xasecure.policymgr.clientssl.keystore.password", value: "{{ security_password }}" }
-        - { key: "xasecure.policymgr.clientssl.truststore", value: "/etc/security/serverKeys/jks/nifi_truststore.jks" }
+        - { key: "xasecure.policymgr.clientssl.truststore", value: "{{ nifi_truststore }}" }
         - { key: "xasecure.policymgr.clientssl.truststore.password", value: "{{ security_password }}" }
 
     - shell: "/var/lib/ambari-server/resources/scripts/configs.py {{ general_configpy_args }} --config-type=ranger-nifi-plugin-properties --key={{ item.key }} --value={{ item.value }} --version-note={{ item.key }}"

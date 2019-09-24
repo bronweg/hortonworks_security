@@ -5,10 +5,10 @@
 - name: "Configure SSL for Kafka"
   shell: "/var/lib/ambari-server/resources/scripts/configs.py {{ general_configpy_args }} --config-type=nifi-registry-ambari-ssl-config --key={{ item.key }} --value={{ item.value }} --version-note={{ item.key }}"
   with_items:
-    - { key: "nifi.registry.security.keystore", value: "/etc/security/serverKeys/jks/nifi_keystore.jks" } 
+    - { key: "nifi.registry.security.keystore", value: "{{ nifi_keystore }}" } 
     - { key: "nifi.registry.security.keystorePasswd", value: "{{ security_password }}" } 
     - { key: "nifi.registry.security.keystoreType", value: "jks" } 
-    - { key: "nifi.registry.security.truststore", value: "/etc/security/serverKeys/jks/nifi_truststore.jks" } 
+    - { key: "nifi.registry.security.truststore", value: "{{ nifi_truststore }}" } 
     - { key: "nifi.registry.security.truststorePasswd", value: "{{ security_password }}" } 
     - { key: "nifi.registry.security.truststoreType", value: "jks" } 
     - { key: "nifi.registry.ssl.isenabled", value: "true" } 

@@ -10,8 +10,8 @@
   shell: "/var/lib/ambari-server/resources/scripts/configs.py {{ general_configpy_args }} --config-type=infra-solr-env --key={{ item.key }} --value={{ item.value }} --version-note={{ item.key }}"
   with_items:
     - { key: "infra_solr_ssl_enabled", value: "true" } 
-    - { key: "infra_solr_keystore_location", value: "/etc/security/serverKeys/jks/keystore.jks" } 
-    - { key: "infra_solr_truststore_location", value: "/etc/security/serverKeys/jks/truststore.jks" } 
+    - { key: "infra_solr_keystore_location", value: "{{ main_keystore }}" } 
+    - { key: "infra_solr_truststore_location", value: "{{ main_truststore }}" } 
     - { key: "infra_solr_keystore_password", value: "{{ security_password }}" } 
     - { key: "infra_solr_truststore_password", value: "{{ security_password }}" } 
   when: "'AMBARI_SERVER' in group_names"

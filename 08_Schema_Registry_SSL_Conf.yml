@@ -2,7 +2,7 @@
   replace:
     path: "/var/lib/ambari-server/resources/mpacks/hdf-ambari-mpack-3.4.0.0-155/common-services/REGISTRY/0.3.0/package/templates/registry.yaml.j2"
     regexp: '^    - type: http$'
-    replace: '    - type: https\n      keyStorePath: /etc/security/serverKeys/jks/keystore.jks\n      keyStorePassword: {{ security_password }}\n      validateCerts: false\n      validatePeers: false'
+    replace: '    - type: https\n      keyStorePath: {{ main_keystore }}\n      keyStorePassword: {{ security_password }}\n      validateCerts: false\n      validatePeers: false'
   when: "'AMBARI_SERVER' in group_names"
 
 - name: "Restart ambari server and agent"
