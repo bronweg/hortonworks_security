@@ -48,11 +48,11 @@
     local_csr_folder: "ssl/csr"
     local_certs_folder: "ssl/certs"
   tasks:
-#  - name: Install kerberos
-#    include: 00_kerberos.yml
-#
   - name: Generate CSR files
-    include: 01_generate_csr_files.yml
+    include: 00_generate_csr_files.yml
+#
+#  - name: Install kerberos
+#    include: 01_kerberos.yml
 #
 #  - name: Prepare nodes for SSL setup
 #    include: 02_general_ssl_setup.yml
