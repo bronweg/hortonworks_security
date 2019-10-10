@@ -1,0 +1,128 @@
+- uri:
+    url: http://{{ inventory_hostname_short }}:8080/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    return_content: yes
+  register: cluster_json
+
+- set_fact:
+   "{{ item.name }}": "{{ cluster_json | json_query(item.query) }}"
+  with_items:
+    - { name: "JHS_node", query: "json.alerts[?Alert.definition_name=='mapreduce_history_server_webui'].Alert.host_name" }
+    - { name: "RM_node", query: "json.alerts[?Alert.definition_name=='yarn_resourcemanager_webui'].Alert.host_name" }
+
+#  vars:
+#    query: "json.alerts[?Alert.definition_name=='mapreduce_history_server_webui'].Alert.host_name"
+
+- xml:
+    path: /etc/hadoop/conf/hdfs-site.xml
+    xpath: /configuration/property[name='dfs.blockreport.initialDelay']/value
+    value: '120'
+
+- xml:
+    path: /etc/hadoop/conf/core-site.xml
+    xpath: /configuration/property[name={{ item.xpath }}]/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'hadoop.ssl.require.client.cert', value: "false" }
+    - { xpath: 'hadoop.ssl.hostname.verifier', value: "DEFAULT" }
+    - { xpath: 'hadoop.ssl.keystores.factory.class', value: "org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory" }
+    - { xpath: 'hadoop.ssl.server.conf', value: "ssl-server.xml" }
+    - { xpath: 'hadoop.ssl.client.conf', value: "ssl-client.xml" }
+ 
+- xml:
+    path: /etc/hadoop/conf/hdfs-site.xml
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'dfs.http.policy', value: "HTTPS_ONLY" }
+    - { xpath: 'dfs.client.https.need-auth', value: "true" }
+    - { xpath: 'dfs.datanode.https.address', value: "0.0.0.0:50475" }
+    - { xpath: 'dfs.namenode.https.address', value: "0.0.0.0:50470" }
+ 
+- xml:
+    path: /etc/hadoop/conf/mapred-site.xml
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'mapreduce.jobhistory.http.policy', value: "HTTPS_ONLY" }
+    - { xpath: 'mapreduce.jobhistory.webapp.https.address', value: "{{ JHS_node }}:19890" }
+    - { xpath: 'mapreduce.ssl.enabled', value: "true" }
+    - { xpath: 'mapreduce.shuffle.ssl.enabled', value: "true" }
+ 
+- xml:
+    path: /etc/hadoop/conf/yarn-site.xml
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'yarn.http.policy', value: "HTTPS_ONLY" }
+    - { xpath: 'yarn.log.server.url', value: "{{ JHS_node }}:19890/jobhistory/logs" }
+    - { xpath: 'yarn.resourcemanager.webapp.https.address', value: "{{ RM_node }}:8090" }
+    - { xpath: 'yarn.nodemanager.webapp.https.address', value: "0.0.0.0:8044" }
+ 
+- xml:
+    path: /etc/hadoop/conf/ssl-server.xml
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'ssl.server.keystore.type', value: "JKS" }
+    - { xpath: 'ssl.server.keystore.location', value: "______" }
+    - { xpath: 'ssl.server.keystore.password', value: "{{ security_password }}" }
+    - { xpath: 'ssl.server.truststore.type', value: "JKS" }
+    - { xpath: 'ssl.server.truststore.location', value: "______" }
+    - { xpath: 'ssl.server.truststore.password', value: "{{ security_password }}" }
+ 
+- xml:
+    path: /etc/hadoop/conf/ssl-client.xml
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'ssl.client.truststore.type', value: "JKS" }
+    - { xpath: 'ssl.client.truststore.location', value: "______" }
+    - { xpath: 'ssl.client.truststore.password', value: "{{ security_password }}" }
+ 
+- xml:
+    path: /etc/tez/3.1.4.0-315/0/tez-site.xml
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'tez.runtime.shuffle.ssl.enable', value: "true" }
+    - { xpath: 'tez.runtime.shuffle.keep-alive.enabled', value: "true" }
+ 
+- name: Restart all services with stale configuration
+  uri:
+    url: https://{{ inventory_hostname }}:8443/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
+    method: POST
+    validate_certs: no
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari", "Content-Type":"text/plain"}'
+    body: {"RequestInfo":{"context":"Restart all services with stale configuration via REST","operational_level": "host_component","command": "RESTART"},"Requests/resource_filters": [{"hosts_predicate": "HostRoles/cluster_name={{ hostvars[inventory_hostname].cluster_name }}"}]}
+    body_format: json
+    timeout: 120
+    return_content: yes
+    status_code: 200,201,202
+  register: returned_from_cluster
+  until: returned_from_cluster.status == 202
+  retries: 300
+  delay: 1
+  when: "'AMBARI_SERVER' in group_names"
+ 
+- name: "Waiting for all services will restart"
+  uri:
+    url: "{{ returned_from_cluster.json.href }}"
+    validate_certs: no
+    force_basic_auth: yes
+    user: "{{ ambari_admin_user }}"
+    password: "{{ ambari_admin_password }}"
+    headers: '{"X-Requested-By":"ambari", "Content-Type":"application/json"}'
+    status_code: 200,201,202
+    return_content: yes
+  register: cluster_check_task
+  until: (((cluster_check_task.content|from_json).Requests.request_status == 'COMPLETED' and (cluster_check_task.content|from_json).Requests.completed_task_count|int > 0))
+  retries: 600
+  delay: 1
+  when: "'AMBARI_SERVER' in group_names"
+
