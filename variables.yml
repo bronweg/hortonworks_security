@@ -1,0 +1,43 @@
+ambari_admin_user: "admin"
+ambari_admin_password: "{{ ambari_admin_password }}"
+ranger_admin_user: "admin"
+ranger_admin_password: "{{ ranger_admin_password }}"
+default_ranger_user_password: "P@ssword"
+ldap_ou_admin_principal: "some_user@EXAMPLE.ORG.IL"
+ldap_ou_admin_password: "{{ ldap_ou_admin_password }}"
+security_password: "{{ security_password }}"
+nifi_policy_name: "HDF_ENV_nifi"
+ldap_domain: "example.org.il"
+realm: "{{ ldap_domain|upper }}"
+encryption_types: "aes des3-cbc-sha1 rc4 des-cbc-md5"
+domains: ""
+domain: "{{ realm }}"
+kdc_host: "{{ ldap_domain }}"
+admin_server_host: "{{ kdc_host }}"
+ldap_url: "ldaps://ldap.example.org.il:636"
+ldap_port: 6182
+ldap_user_name_attribute: "cn"
+ldap_group_object_class: "group"
+ldap_group_name_attribute: "sAMAccountName"
+ldap_group_member_attribute: "member"
+ldap_user_groupname_attribute: "sAMAccountName"
+ldap_ou_admin_user_dn: 'CN=some_user,OU=org_unit,OU=Servers,OU=Non-Prod\ Environments,DC=example,DC=org,DC=il'
+ldap_ou_for_hortonworks_with_space: 'OU=org_unit,OU=Servers,OU=Non-Prod Environments,DC=example,DC=org,DC=il'
+ldap_ou_for_hortonworks: 'OU=org_unit,OU=Servers,OU=Non-Prod\ Environments,DC=example,DC=org,DC=il'
+ldap_users_ou: 'OU=org_unit,OU=Center,DC=example,DC=org,DC=il'
+ldap_groups_ou: 'OU=org_unit,OU=Service\ Account\ Users,DC=example,DC=org,DC=il'
+ldap_user_DNs: '{{ ldap_ou_for_hortonworks }}\;{{ ldap_users_ou }}'
+ldap_group_DNs: '{{ ldap_ou_for_hortonworks }}\;{{ ldap_groups_ou }}'
+serverKeys_folder: "/etc/security/serverKeys"
+jks_folder: "{{ serverKeys_folder }}/jks"
+csr_folder: "{{ serverKeys_folder }}/csr"
+certs_folder: "{{ serverKeys_folder }}/certs"
+main_keystore: "{{ jks_folder }}/keystore.jks"
+main_truststore: "{{ jks_folder }}/truststore.jks"
+nifi_keystore: "{{ jks_folder }}/nifi_keystore.jks"
+nifi_truststore: "{{ jks_folder }}/nifi_truststore.jks"
+kafka_keystore: "{{ jks_folder }}/kafka_keystore.jks"
+kafka_truststore: "{{ jks_folder }}/kafka_truststore.jks"
+local_jks_folder: "ssl/jks"
+local_csr_folder: "ssl/csr"
+local_certs_folder: "ssl/certs"

@@ -12,9 +12,6 @@
     - { name: "JHS_node", query: "json.alerts[?Alert.definition_name=='mapreduce_history_server_webui'].Alert.host_name" }
     - { name: "RM_node", query: "json.alerts[?Alert.definition_name=='yarn_resourcemanager_webui'].Alert.host_name" }
 
-#  vars:
-#    query: "json.alerts[?Alert.definition_name=='mapreduce_history_server_webui'].Alert.host_name"
-
 - xml:
     path: /etc/hadoop/conf/hdfs-site.xml
     xpath: /configuration/property[name='dfs.blockreport.initialDelay']/value
@@ -67,10 +64,10 @@
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'ssl.server.keystore.type', value: "JKS" }
-    - { xpath: 'ssl.server.keystore.location', value: "______" }
+    - { xpath: 'ssl.server.keystore.location', value: "{{ main_keystore }}" }
     - { xpath: 'ssl.server.keystore.password', value: "{{ security_password }}" }
     - { xpath: 'ssl.server.truststore.type', value: "JKS" }
-    - { xpath: 'ssl.server.truststore.location', value: "______" }
+    - { xpath: 'ssl.server.truststore.location', value: "{{ main_truststore }}" }
     - { xpath: 'ssl.server.truststore.password', value: "{{ security_password }}" }
  
 - xml:
@@ -79,7 +76,7 @@
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'ssl.client.truststore.type', value: "JKS" }
-    - { xpath: 'ssl.client.truststore.location', value: "______" }
+    - { xpath: 'ssl.client.truststore.location', value: "{{ main_truststore }}" }
     - { xpath: 'ssl.client.truststore.password', value: "{{ security_password }}" }
  
 - xml:
