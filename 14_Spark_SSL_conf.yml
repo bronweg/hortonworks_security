@@ -3,23 +3,44 @@
     - copy:
         remote_src: yes
         src: {{ main_{{ item }} }}
-        dest: {{ hive_{{ item }} }}
-        owner: hive
-        group: hadoop
+        dest: {{ spark_{{ item }} }}
+        owner: spark
+        group: spark
       with_items:
         - keystore
         - truststore
-    - shell: "keytool -changealias -keystore {{ hive_keystore }} -alias {{ inventory_hostname|lower }} -destalias hive-key -storepass {{ security_password }}"
+    - shell: "keytool -changealias -keystore {{ spark_keystore }} -alias {{ inventory_hostname|lower }} -destalias spark-key -storepass {{ security_password }}"
 
-- name: "Configure SSL for Hive"
+- name: "Configure SSL for Spark"
   xml:
-    path: {{ hive-site-xml }}
+    path: {{ yarn-site-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
-    - { xpath: 'hive.server2.use.SSL', value: "true" }
-    - { xpath: 'hive.server2.keystore.password', value: "{{ security_password }}" }
-    - { xpath: 'hive.server2.keystore.path', value: "{{ hive_keystore }}" }
+    - { xpath: 'spark.authenticate', value: "true" }
+
+  xml:
+    path: {{ spark-defaults-conf }}
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    # Enable Spark authentication
+    - { xpath: 'spark.authenticate', value: "true" }
+    - { xpath: 'spark.authenticate.enableSaslEncryption', value: "true" }
+    # Enable Spark SSL
+    - { xpath: 'spark.ssl.enabled', value: "true" }
+    - { xpath: 'spark.ssl.keyPassword', value: "{{ security_password }}" }
+    - { xpath: 'spark.ssl.keyStore', value: "{{ spark_keystore }}" }
+    - { xpath: 'spark.ssl.keyStorePassword', value: "{{ security_password }}" }
+    - { xpath: 'spark.ssl.protocol', value: "TLS" }
+    - { xpath: 'spark.ssl.trustStore', value: "{{ spark_truststore }}" }
+    - { xpath: 'spark.ssl.trustStorePassword', value: "{{ security_password }}" }
+    # Enable HTTPS for the Spark UI
+    - { xpath: 'spark.ui.https.enabled', value: "true" }
+    # (Optional) If you want to enable optional on-disk block encryption, which applies to both shuffle and RDD blocks on disk
+#    - { xpath: 'spark.io.encryption.enabled', value: "true" }
+#    - { xpath: 'spark.io.encryption.keySizeBits', value: "128" }
+#    - { xpath: 'spark.io.encryption.keygen.algorithm', value: "HmacSHA1" }
 
 - name: Restart and wait for all relevant services
   block:

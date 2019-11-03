@@ -56,3 +56,4 @@ ssl-client-xml: /etc/hadoop/conf/ssl-client.xml
 tez-site-xml: /etc/tez/conf/tez-site.xml
 hbase-site-xml: /etc/hbase/conf/hbase-site.xml
 hive-site-xml: /etc/hive/conf/hive-site.xml
+spark-defaults-conf: /etc/spark2/conf/spark-defaults.conf
