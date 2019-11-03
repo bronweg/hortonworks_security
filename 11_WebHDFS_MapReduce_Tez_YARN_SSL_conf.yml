@@ -5,6 +5,7 @@
     password: "{{ ambari_admin_password }}"
     return_content: yes
   register: cluster_json
+  when: "'AMBARI_SERVER' in group_names"
 
 - set_fact:
    "{{ item.name }}": "{{ cluster_json | json_query(item.query) }}"
@@ -13,12 +14,18 @@
     - { name: "RM_node", query: "json.alerts[?Alert.definition_name=='yarn_resourcemanager_webui'].Alert.host_name" }
 
 - xml:
-    path: /etc/hadoop/conf/hdfs-site.xml
-    xpath: /configuration/property[name='dfs.blockreport.initialDelay']/value
-    value: '120'
-
+    path: {{ hdfs-site-xml }}
+    xpath: /configuration/property[name={{ item.xpath }}/value
+    value: "{{ item.value }}"
+  with_items:
+    - { xpath: 'dfs.blockreport.initialDelay', value: "120" }
+    - { xpath: 'dfs.http.policy', value: "HTTPS_ONLY" }
+    - { xpath: 'dfs.client.https.need-auth', value: "true" }
+    - { xpath: 'dfs.datanode.https.address', value: "0.0.0.0:50475" }
+    - { xpath: 'dfs.namenode.https.address', value: "0.0.0.0:50470" }
+ 
 - xml:
-    path: /etc/hadoop/conf/core-site.xml
+    path: {{ core-site-xml }}
     xpath: /configuration/property[name={{ item.xpath }}]/value
     value: "{{ item.value }}"
   with_items:
@@ -29,17 +36,7 @@
     - { xpath: 'hadoop.ssl.client.conf', value: "ssl-client.xml" }
  
 - xml:
-    path: /etc/hadoop/conf/hdfs-site.xml
-    xpath: /configuration/property[name={{ item.xpath }}/value
-    value: "{{ item.value }}"
-  with_items:
-    - { xpath: 'dfs.http.policy', value: "HTTPS_ONLY" }
-    - { xpath: 'dfs.client.https.need-auth', value: "true" }
-    - { xpath: 'dfs.datanode.https.address', value: "0.0.0.0:50475" }
-    - { xpath: 'dfs.namenode.https.address', value: "0.0.0.0:50470" }
- 
-- xml:
-    path: /etc/hadoop/conf/mapred-site.xml
+    path: {{ mapred-site-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
@@ -49,7 +46,7 @@
     - { xpath: 'mapreduce.shuffle.ssl.enabled', value: "true" }
  
 - xml:
-    path: /etc/hadoop/conf/yarn-site.xml
+    path: {{ yarn-site-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
@@ -59,7 +56,7 @@
     - { xpath: 'yarn.nodemanager.webapp.https.address', value: "0.0.0.0:8044" }
  
 - xml:
-    path: /etc/hadoop/conf/ssl-server.xml
+    path: {{ ssl-server-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
@@ -71,7 +68,7 @@
     - { xpath: 'ssl.server.truststore.password', value: "{{ security_password }}" }
  
 - xml:
-    path: /etc/hadoop/conf/ssl-client.xml
+    path: {{ ssl-client-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
@@ -80,7 +77,7 @@
     - { xpath: 'ssl.client.truststore.password', value: "{{ security_password }}" }
  
 - xml:
-    path: /etc/tez/3.1.4.0-315/0/tez-site.xml
+    path: {{ tez-site-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
@@ -122,4 +119,3 @@
   retries: 600
   delay: 1
   when: "'AMBARI_SERVER' in group_names"
-

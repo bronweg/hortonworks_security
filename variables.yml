@@ -32,12 +32,24 @@ serverKeys_folder: "/etc/security/serverKeys"
 jks_folder: "{{ serverKeys_folder }}/jks"
 csr_folder: "{{ serverKeys_folder }}/csr"
 certs_folder: "{{ serverKeys_folder }}/certs"
+local_jks_folder: "ssl/jks"
+local_csr_folder: "ssl/csr"
+local_certs_folder: "ssl/certs"
 main_keystore: "{{ jks_folder }}/keystore.jks"
 main_truststore: "{{ jks_folder }}/truststore.jks"
 nifi_keystore: "{{ jks_folder }}/nifi_keystore.jks"
 nifi_truststore: "{{ jks_folder }}/nifi_truststore.jks"
 kafka_keystore: "{{ jks_folder }}/kafka_keystore.jks"
 kafka_truststore: "{{ jks_folder }}/kafka_truststore.jks"
-local_jks_folder: "ssl/jks"
-local_csr_folder: "ssl/csr"
-local_certs_folder: "ssl/certs"
+hbase_keystore: "{{ jks_folder }}/hbase_keystore.jks"
+hbase_truststore: "{{ jks_folder }}/hbase_truststore.jks"
+
+# Configuration files:
+hdfs-site-xml: /etc/hadoop/conf/hdfs-site.xml
+core-site-xml: /etc/hadoop/conf/core-site.xml
+mapred-site-xml: /etc/hadoop/conf/mapred-site.xml
+yarn-site-xml: /etc/hadoop/conf/yarn-site.xml
+ssl-server-xml: /etc/hadoop/conf/ssl-server.xml
+ssl-client-xml: /etc/hadoop/conf/ssl-client.xml
+tez-site-xml: /etc/tez/conf/tez-site.xml
+hbase-site-xml: /etc/hbase/conf/hbase-site.xml

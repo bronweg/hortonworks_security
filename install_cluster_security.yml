@@ -6,8 +6,8 @@
     - variables.yml
 
   tasks:
-  - name: Generate CSR files
-    include: 00_generate_csr_files.yml
+#  - name: Generate CSR files
+#    include: 00_generate_csr_files.yml
 #
 #  - name: Install kerberos
 #    include: 01_kerberos.yml
@@ -38,3 +38,6 @@
 #
 #  - name: Install SSL on NiFi Registry
 #    include: 10_NiFi_Registry_SSL_conf.yml
+
+  - name: Install SSL on WebHDFS, MapReduce? TEZ and YARN
+    include: 11_WebHDFS_MapReduce_Tez_YARN_SSL_conf.yml
