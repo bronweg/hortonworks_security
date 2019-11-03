@@ -3,31 +3,23 @@
     - copy:
         remote_src: yes
         src: {{ main_{{ item }} }}
-        dest: {{ hbase_{{ item }} }}
-        owner: hbase
+        dest: {{ hive_{{ item }} }}
+        owner: hive
         group: hadoop
       with_items:
         - keystore
         - truststore
-    - shell: "keytool -changealias -keystore {{ hbase_keystore }} -alias {{ inventory_hostname|lower }} -destalias hbase-key -storepass {{ security_password }}"
+    - shell: "keytool -changealias -keystore {{ hivi_keystore }} -alias {{ inventory_hostname|lower }} -destalias hive-key -storepass {{ security_password }}"
 
 - name: "Configure SSL for HBase"
   xml:
-    path: {{ hbase-site-xml }}
+    path: {{ hive-site-xml }}
     xpath: /configuration/property[name={{ item.xpath }}/value
     value: "{{ item.value }}"
   with_items:
-    # WEB-UI
-    - { xpath: 'hbase.ssl.enabled', value: "true" }
-    - { xpath: 'hadoop.ssl.enabled', value: "true" }
-    - { xpath: 'ssl.server.keystore.keypassword', value: "{{ security_password }}" }
-    - { xpath: 'ssl.server.keystore.password', value: "{{ security_password }}" }
-    - { xpath: 'ssl.server.keystore.location', value: "{{ hbase_keystore }}" }
-    # HBASE-REST
-    - { xpath: 'hbase.rest.ssl.enabled', value: "true" }
-    - { xpath: 'hbase.rest.ssl.keystore.keypassword', value: "{{ security_password }}" }
-    - { xpath: 'hbase.rest.ssl.keystore.password', value: "{{ security_password }}" }
-    - { xpath: 'hbase.rest.ssl.keystore.store', value: "{{ hbase_keystore }}" }
+    - { xpath: 'hive.server2.use.SSL', value: "true" }
+    - { xpath: 'hive.server2.keystore.password', value: "{{ security_password }}" }
+    - { xpath: 'hive.server2.keystore.path', value: "{{ hive_keystore }}" }
 
 - name: Restart and wait for all relevant services
   block:
