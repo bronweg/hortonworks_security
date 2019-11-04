@@ -39,5 +39,14 @@
 #  - name: Install SSL on NiFi Registry
 #    include: 10_NiFi_Registry_SSL_conf.yml
 
-  - name: Install SSL on WebHDFS, MapReduce? TEZ and YARN
+  - name: Install SSL on WebHDFS, MapReduce, TEZ and YARN
     include: 11_WebHDFS_MapReduce_Tez_YARN_SSL_conf.yml
+
+  - name: Install SSL on HBase
+    include: 12_HBase_SSL_conf.yml
+
+  - name: Install SSL on Hive
+    include: 13_Hive_SSL_conf.yml
+
+  - name: Install SSL on Spark
+    include: 14_Spark_SSL_conf.yml
