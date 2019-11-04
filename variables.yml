@@ -1,11 +1,8 @@
+ambari_https_port: 8443
 ambari_admin_user: "admin"
-ambari_admin_password: "{{ ambari_admin_password }}"
 ranger_admin_user: "admin"
-ranger_admin_password: "{{ ranger_admin_password }}"
 default_ranger_user_password: "P@ssword"
 ldap_ou_admin_principal: "some_user@EXAMPLE.ORG.IL"
-ldap_ou_admin_password: "{{ ldap_ou_admin_password }}"
-security_password: "{{ security_password }}"
 nifi_policy_name: "HDF_ENV_nifi"
 ldap_domain: "example.org.il"
 realm: "{{ ldap_domain|upper }}"
@@ -47,13 +44,13 @@ hive_keystore: "{{ jks_folder }}/hive_keystore.jks"
 hive_truststore: "{{ jks_folder }}/hive_truststore.jks"
 
 # Configuration files:
-hdfs-site-xml: /etc/hadoop/conf/hdfs-site.xml
-core-site-xml: /etc/hadoop/conf/core-site.xml
-mapred-site-xml: /etc/hadoop/conf/mapred-site.xml
-yarn-site-xml: /etc/hadoop/conf/yarn-site.xml
-ssl-server-xml: /etc/hadoop/conf/ssl-server.xml
-ssl-client-xml: /etc/hadoop/conf/ssl-client.xml
-tez-site-xml: /etc/tez/conf/tez-site.xml
-hbase-site-xml: /etc/hbase/conf/hbase-site.xml
-hive-site-xml: /etc/hive/conf/hive-site.xml
-spark-defaults-conf: /etc/spark2/conf/spark-defaults.conf
+hdfs_site_xml: /etc/hadoop/conf/hdfs-site.xml
+core_site_xml: /etc/hadoop/conf/core-site.xml
+mapred_site_xml: /etc/hadoop/conf/mapred-site.xml
+yarn_site_xml: /etc/hadoop/conf/yarn-site.xml
+ssl_server_xml: /etc/hadoop/conf/ssl-server.xml
+ssl_client_xml: /etc/hadoop/conf/ssl-client.xml
+tez_site_xml: /etc/tez/conf/tez-site.xml
+hbase_site_xml: /etc/hbase/conf/hbase-site.xml
+hive_site_xml: /etc/hive/conf/hive-site.xml
+spark_defaults_conf: /etc/spark2/conf/spark-defaults.conf

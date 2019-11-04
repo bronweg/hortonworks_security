@@ -1,13 +1,21 @@
 - name: Copy all nodes cetificates to every node
   copy:
-    src: {{ local_certs_folder }}/{{ item }}.crt
+    src: "{{ local_certs_folder }}/{{ item }}.crt"
     dest: "{{ certs_folder }}"
   with_items:
     - "{{ ansible_play_batch|lower }}"
 
+- name: Copy RootCA and SubCA to every node
+  copy:
+    src: "{{ local_certs_folder }}/{{ item }}"
+    dest: "{{ certs_folder }}"
+  with_items:
+    - 'RootCA.cer'
+    - 'SubCA.cer'
+
 - name: Copy all nodes java keystores to every node
   copy:
-    src: {{ local_jks_folder }}/{{ item }}-keystore.jks
+    src: "{{ local_jks_folder }}/{{ item }}/{{ jks_folder }}/{{ item }}-keystore.jks"
     dest: "{{ jks_folder }}"
   with_items:
     - "{{ ansible_play_batch|lower }}"
@@ -15,8 +23,8 @@
 - name: Create copy of keystore file with generic name
   copy:
     remote_src: yes
-    src: {{ jks_folder }}/{{ inventory_hostname|lower }}-keystore.jks
-    dest: {{ main_keystore }}
+    src: "{{ jks_folder }}/{{ inventory_hostname|lower }}-keystore.jks"
+    dest: "{{ main_keystore }}"
 
 - name: Import ROOT and INT CAs to keystore
   shell: keytool -import -alias {{ item.alias }} -trustcacerts -file {{ certs_folder }}/{{ item.cert }} -keystore {{ jks_folder }}/{{ inventory_hostname|lower }}-keystore.jks -storepass {{ security_password }} -noprompt
@@ -28,8 +36,8 @@
 - name: Import certs into node keystore
   java_cert:
     cert_alias: "{{ item.alias | default( item ) }}"
-    cert_path: {{ certs_folder }}/{{ item.cert | default( item ~ '.crt' ) }}
-    keystore_path: {{ main_keystore }}
+    cert_path: "{{ certs_folder }}/{{ item.cert | default( item ~ '.crt' ) }}"
+    keystore_path: "{{ main_keystore }}"
     keystore_pass: "{{ security_password }}"
     state: present
   with_items:
@@ -38,8 +46,8 @@
 - name: Import certs into node truststore
   java_cert:
     cert_alias: "{{ item.alias | default( item ) }}"
-    cert_path: {{ certs_folder }}/{{ item.cert | default( item ~ '.crt' ) }}
-    keystore_path: {{ main_truststore }}
+    cert_path: "{{ certs_folder }}/{{ item.cert | default( item ~ '.crt' ) }}"
+    keystore_path: "{{ main_truststore }}"
     keystore_pass: "{{ security_password }}"
     keystore_create: yes
     state: present

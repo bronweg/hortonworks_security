@@ -1,32 +1,32 @@
 - name: Convert the Ambari server cert to PEM format
-  shell: openssl x509 -in {{ certs_folder }}/$(hostname -f).crt -out {{ certs_folder }}/$(hostname -f).pem -outform PEM
+  shell: "openssl x509 -in {{ certs_folder }}/$(hostname -f).crt -out {{ certs_folder }}/$(hostname -f).pem -outform PEM"
   when: "'AMBARI_SERVER' in group_names"
 
 - name: Convert the Keystore to pem
   block:
-  - shell: keytool -importkeystore -srckeystore {{ main_keystore }} -destkeystore {{ jks_folder }}/$(hostname -f).p12 -srcalias $(hostname -f) -srcstoretype jks -deststoretype pkcs12 -storepass {{ security_password }} -srcstorepass {{ security_password }}
-  - shell: openssl pkcs12 -in {{ jks_folder }}/$(hostname -f).p12 -out {{ jks_folder }}/$(hostname -f).pem -passout pass:{{ security_password }} -passin pass:{{ security_password }}
+  - shell: "keytool -importkeystore -srckeystore {{ main_keystore }} -destkeystore {{ jks_folder }}/$(hostname -f).p12 -srcalias $(hostname -f) -srcstoretype jks -deststoretype pkcs12 -storepass {{ security_password }} -srcstorepass {{ security_password }}"
+  - shell: "openssl pkcs12 -in {{ jks_folder }}/$(hostname -f).p12 -out {{ jks_folder }}/$(hostname -f).pem -passout pass:{{ security_password }} -passin pass:{{ security_password }}"
   when: "'AMBARI_SERVER' in group_names"
 
-- name: Set the Ambari security facts
+- name: Set the Ambari security
   block:
   - name: Set options to ambari-server setup-security command
     set_fact:
       ambari_security_options: "--security-option=setup-https \
                                 --api-ssl=true \
-                                --api-ssl-port=8443 \
+                                --api-ssl-port={{ ambari_https_port }} \
                                 --import-cert-path={{ certs_folder }}/{{ inventory_hostname|lower }}.pem \
                                 --import-key-path={{ jks_folder }}/{{ inventory_hostname|lower }}.pem \
                                 --pem-password={{ security_password }}"
 
   - name: Update the Ambari security
-    command: ambari-server setup-security "{{ ambari_security_options }}"
+    command: "ambari-server setup-security {{ ambari_security_options }}"
   when: "'AMBARI_SERVER' in group_names"
 
 - name: Restart ambari server
   block:
     - name: Restart ambari server via ambari-server api
-      command: ambari-server restart
+      command: "ambari-server restart"
 
     - name: Ensure that ambari-server systemd process is enabled
       systemd:

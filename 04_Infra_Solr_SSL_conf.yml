@@ -3,7 +3,7 @@
     state: present
 
 - set_fact:
-    general_configpy_args: "--host={{ inventory_hostname|lower }} --port=8443 --protocol=https --action=set --cluster={{ hostvars[inventory_hostname].cluster_name }} --user={{ ambari_admin_user }} --password={{ ambari_admin_password }} --unsafe "
+    general_configpy_args: "--host={{ inventory_hostname|lower }} --port={{ ambari_https_port }} --protocol=https --action=set --cluster={{ hostvars[inventory_hostname].cluster_name }} --user={{ ambari_admin_user }} --password={{ ambari_admin_password }} --unsafe "
   when: "'AMBARI_SERVER' in group_names"
 
 - name: Configure SSL for INFRA SOLR
@@ -18,7 +18,7 @@
 
 - name: Restart all services with stale configuration
   uri:
-    url: https://{{ inventory_hostname }}:8443/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
+    url: https://{{ inventory_hostname }}:{{ ambari_https_port }}/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
     method: POST
     validate_certs: no
     force_basic_auth: yes

@@ -1,5 +1,5 @@
 - uri:
-    url: http://{{ inventory_hostname_short }}:8080/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}
+    url: http://{{ inventory_hostname_short }}:{{ ambari_https_port }}/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}
     force_basic_auth: yes
     user: "{{ ambari_admin_user }}"
     password: "{{ ambari_admin_password }}"
@@ -12,10 +12,11 @@
   with_items:
     - { name: "JHS_node", query: "json.alerts[?Alert.definition_name=='mapreduce_history_server_webui'].Alert.host_name" }
     - { name: "RM_node", query: "json.alerts[?Alert.definition_name=='yarn_resourcemanager_webui'].Alert.host_name" }
+  run_once: true
 
 - xml:
-    path: {{ hdfs-site-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    path: "{{ hdfs_site_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'dfs.blockreport.initialDelay', value: "120" }
@@ -25,8 +26,8 @@
     - { xpath: 'dfs.namenode.https.address', value: "0.0.0.0:50470" }
  
 - xml:
-    path: {{ core-site-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}]/value
+    path: "{{ core_site_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'hadoop.ssl.require.client.cert', value: "false" }
@@ -36,8 +37,8 @@
     - { xpath: 'hadoop.ssl.client.conf', value: "ssl-client.xml" }
  
 - xml:
-    path: {{ mapred-site-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    path: "{{ mapred_site_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'mapreduce.jobhistory.http.policy', value: "HTTPS_ONLY" }
@@ -46,8 +47,8 @@
     - { xpath: 'mapreduce.shuffle.ssl.enabled', value: "true" }
  
 - xml:
-    path: {{ yarn-site-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    path: "{{ yarn_site_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'yarn.http.policy', value: "HTTPS_ONLY" }
@@ -56,8 +57,8 @@
     - { xpath: 'yarn.nodemanager.webapp.https.address', value: "0.0.0.0:8044" }
  
 - xml:
-    path: {{ ssl-server-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    path: "{{ ssl_server_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'ssl.server.keystore.type', value: "JKS" }
@@ -68,8 +69,8 @@
     - { xpath: 'ssl.server.truststore.password', value: "{{ security_password }}" }
  
 - xml:
-    path: {{ ssl-client-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    path: "{{ ssl_client_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'ssl.client.truststore.type', value: "JKS" }
@@ -77,8 +78,8 @@
     - { xpath: 'ssl.client.truststore.password', value: "{{ security_password }}" }
  
 - xml:
-    path: {{ tez-site-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    path: "{{ tez_site_xml }}"
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'tez.runtime.shuffle.ssl.enable', value: "true" }
@@ -86,7 +87,7 @@
  
 - name: Restart all services with stale configuration
   uri:
-    url: https://{{ inventory_hostname }}:8443/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
+    url: https://{{ inventory_hostname }}:{{ ambari_https_port }}/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
     method: POST
     validate_certs: no
     force_basic_auth: yes

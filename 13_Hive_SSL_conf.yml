@@ -14,7 +14,7 @@
 - name: "Configure SSL for Hive"
   xml:
     path: {{ hive-site-xml }}
-    xpath: /configuration/property[name={{ item.xpath }}/value
+    xpath: /configuration/property[name="{{ item.xpath }}"]/value
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'hive.server2.use.SSL', value: "true" }
@@ -25,7 +25,7 @@
   block:
     - name: Restart all services with stale configuration
       uri:
-        url: https://{{ inventory_hostname }}:8443/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
+        url: https://{{ inventory_hostname }}:{{ ambari_https_port }}/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
         method: POST
         validate_certs: no
         force_basic_auth: yes
