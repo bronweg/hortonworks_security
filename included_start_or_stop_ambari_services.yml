@@ -32,7 +32,9 @@
 - name: "Waiting for {{ service }} will {{ action }}"
   uri:
     url: "{{ returned_from_cluster.json.href }}"
+    method: GET
     force_basic_auth: yes
+    validate_certs: no
     user: "{{ ambari_admin_user }}"
     password: "{{ ambari_admin_password }}"
     headers: '{"X-Requested-By":"ambari", "Content-Type":"application/json"}'

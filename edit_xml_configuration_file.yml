@@ -1,0 +1,20 @@
+- block:
+    - name: "Updating {{ xpath }} property in {{ path }} file."
+      xml:
+        path: "{{ path }}"
+        xpath: "{{ xpath }}"
+        value: "{{ value }}"
+
+  rescue:
+    - debug:
+        msg: "Property {{ xpath }} doesn't exist. Trying to create it."
+
+    - name: "Creating updated {{ xpath }} property in {{ path }} file."
+      blockinfile:
+        path: "{{ path }}"
+        insertbefore: '  </configuration>'
+        marker: ""
+        block: "    <property>\n      <name>{{ xpath }}</name>\n      <value>{{ value }}</value>\n    </property>"
+
+    - debug:
+        msg: "Property {{ xpath }} created successfully."

@@ -2,8 +2,8 @@
   block:
     - copy:
         remote_src: yes
-        src: "{{ main_{{ item }} }}"
-        dest: "{{ spark_{{ item }} }}"
+        src: "{{ lookup('vars', 'main_' + item) }}"
+        dest: "{{ lookup('vars', 'spark_' + item) }}"
         owner: spark
         group: spark
       with_items:
@@ -12,16 +12,18 @@
     - shell: "keytool -changealias -keystore {{ spark_keystore }} -alias {{ inventory_hostname|lower }} -destalias spark-key -storepass {{ security_password }}"
 
 - name: "Configure SSL for Spark"
-  xml:
-    path: "{{ yarn-site-xml }}"
-    xpath: /configuration/property[name="{{ item.xpath }}"]/value
+  include_tasks: edit_xml_configuration_file.yml
+  vars:
+    path: "{{ yarn_site_xml }}"
+    xpath: "{{ item.xpath }}"
     value: "{{ item.value }}"
   with_items:
     - { xpath: 'spark.authenticate', value: "true" }
 
-  xml:
-    path: "{{ spark-defaults-conf }}"
-    xpath: /configuration/property[name="{{ item.xpath }}"]/value
+  include_tasks: edit_xml_configuration_file.yml
+    vars:
+    path: "{{ spark_defaults_conf }}"
+    xpath: "{{ item.xpath }}"
     value: "{{ item.value }}"
   with_items:
     # Enable Spark authentication
@@ -42,39 +44,8 @@
 #    - { xpath: 'spark.io.encryption.keySizeBits', value: "128" }
 #    - { xpath: 'spark.io.encryption.keygen.algorithm', value: "HmacSHA1" }
 
-- name: Restart and wait for all relevant services
-  block:
-    - name: Restart all services with stale configuration
-      uri:
-        url: https://{{ inventory_hostname }}:{{ ambari_https_port }}/api/v1/clusters/{{ hostvars[inventory_hostname].cluster_name }}/requests
-        method: POST
-        validate_certs: no
-        force_basic_auth: yes
-        user: "{{ ambari_admin_user }}"
-        password: "{{ ambari_admin_password }}"
-        headers: '{"X-Requested-By":"ambari", "Content-Type":"text/plain"}'
-        body: {"RequestInfo":{"context":"Restart all services with stale configuration via REST","operational_level": "host_component","command": "RESTART"},"Requests/resource_filters": [{"hosts_predicate": "HostRoles/stale_configs=true&HostRoles/cluster_name={{ hostvars[inventory_hostname].cluster_name }}"}]}
-        body_format: json
-        timeout: 120
-        return_content: yes
-        status_code: 200,201,202
-      register: returned_from_cluster
-      until: returned_from_cluster.status == 202
-      retries: 300
-      delay: 1
-    
-    - name: "Waiting for all services will restart"
-      uri:
-        url: "{{ returned_from_cluster.json.href }}"
-        validate_certs: no
-        force_basic_auth: yes
-        user: "{{ ambari_admin_user }}"
-        password: "{{ ambari_admin_password }}"
-        headers: '{"X-Requested-By":"ambari", "Content-Type":"application/json"}'
-        status_code: 200,201,202
-        return_content: yes
-      register: cluster_check_task
-      until: (((cluster_check_task.content|from_json).Requests.request_status == 'COMPLETED' and (cluster_check_task.content|from_json).Requests.completed_task_count|int > 0))
-      retries: 600
-      delay: 1
-  when: "'AMBARI_SERVER' in group_names"
+- name: Restart Spark2 service and waiting for tasks finish
+  include: included_start_or_stop_ambari_services.yml service="Spark2" action={{ item }}
+  with_items:
+    - Stop
+    - Start
