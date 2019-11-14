@@ -45,7 +45,7 @@
 #    - { xpath: 'spark.io.encryption.keygen.algorithm', value: "HmacSHA1" }
 
 - name: Restart Spark2 service and waiting for tasks finish
-  include: included_start_or_stop_ambari_services.yml service="Spark2" action={{ item }}
+  include: included_start_or_stop_ambari_services.yml service="SPARK2" action={{ item }}
   with_items:
     - Stop
     - Start
