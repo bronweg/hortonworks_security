@@ -42,6 +42,8 @@ hbase_keystore: "{{ jks_folder }}/hbase_keystore.jks"
 hbase_truststore: "{{ jks_folder }}/hbase_truststore.jks"
 hive_keystore: "{{ jks_folder }}/hive_keystore.jks"
 hive_truststore: "{{ jks_folder }}/hive_truststore.jks"
+spark_keystore: "{{ jks_folder }}/spark_keystore.jks"
+spark_truststore: "{{ jks_folder }}/spark_truststore.jks"
 
 # Configuration files:
 hdfs_site_xml: /etc/hadoop/conf/hdfs-site.xml
